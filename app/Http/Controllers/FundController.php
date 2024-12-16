@@ -20,11 +20,6 @@ use Illuminate\Validation\Rule;
 
 class FundController extends Controller
 {
-    public function authuser(Request $request)
-    {
-        return  $data = $request->session()->all();
-        return $user  = Auth::user();
-    }
 
     public function login()
     {
@@ -33,41 +28,13 @@ class FundController extends Controller
 
     public function userlogin(Request $request)
     {
-        try {
-            // Validation
-            $email = $request->email;
-            // checking user is existing or not
-            $emailInfo = User::where('email', $request->email)
-                ->first();
-            if (!$emailInfo) {
-                $msg = "Oops! Given email does not exist";
-                return $msg;
-            }
+        $credentials = $request->only('email', 'password');
 
-            // Authentication Using Sql Database
-            if ($emailInfo) {
-                // Authenticating Password
-                if ($request->password == $emailInfo->password) {
-                    $token = $emailInfo->createToken('my-app-token')->plainTextToken;
-                    $emailInfo->remember_token = $token;
-                    $emailInfo->save();
-
-                    $key = 'last_activity_' . $emailInfo->id;               // Set last activity key 
-                    $message = "You r logged in now";           // Response Message Using Trait
-
-                    return redirect()->route('authuser')->with('success', $message);
-
-                    return response()->json($message, 200);
-                } else {
-                    $msg = "Incorrect Password";
-                    return response($msg, 200);
-                }
-            }
+        if (Auth::attempt($credentials)) {
+            return redirect()->intended('/');
         }
-        // Authentication Using Sql Database
-        catch (Exception $e) {
-            return $e->getMessage();
-        }
+
+        return back()->withErrors(['email' => 'Invalid credentials'])->onlyInput('email');
     }
 
     public function friendList()
@@ -196,6 +163,7 @@ class FundController extends Controller
         ]);
 
         if ($validator->fails()) {
+            return back()->withErrors(['loan_amt' => 'The loan amount must be less than or equal to the balance left.']);
             return response()->json($validator->errors(), 422);
         }
 
@@ -266,7 +234,6 @@ class FundController extends Controller
 
     public function loanHome()
     {
-
         $currentBalance = Transaction::select('balance')->orderByDesc('id')->first();
         $loanDetails = User::select('users.id as id', 'name', 'loan_amt', 'paid_amt')
             ->leftjoin('loans', 'loans.user_id', 'users.id')
@@ -287,11 +254,6 @@ class FundController extends Controller
             ->orderByDesc('loan_details.id')
             ->get();
         return view('loandetail', compact('loanDetail'));
-    }
-
-    public function provideLoan($id)
-    {
-        return $id;
     }
 
     public function storeLoan(Request $request)
@@ -382,12 +344,7 @@ class FundController extends Controller
         try {
             $mTransaction = new Transaction();
             $mTransaction->date        = $validated['date'];
-
-            /**
-             auth user ka id
-             */
-            // $mTransaction->user_id     = auth()->user()->id;
-
+            $mTransaction->user_id     = auth()->user()->id;
             $mTransaction->type        = "Debit";
             $mTransaction->balance     = $currentBalance->balance - $validated['amount'];
             $mTransaction->description = "Fixed Deposit to account " . $request->accountNo . ".";

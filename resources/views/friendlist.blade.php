@@ -13,9 +13,20 @@ $totalContribution = $friendList->sum('total_contribution');
     <h2 style="font-size: 2em; color: #007bff; font-weight: bold;">Friends' Contributions</h2>
 </div>
 
-<!-- Total contribution display -->
-<div class="contribution-box">
-    <strong>Total Contribution of All Friends:</strong> ₹{{ number_format($totalContribution, 2) }}
+<!-- Total Contribution Section -->
+<div class="contribution-box" style="
+    background-color: #eaf4ea;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-size: 22px;
+    color: #2d572c;
+    font-family: Arial, sans-serif;
+    width: 50%;
+    text-align: center;
+    margin-bottom: 20px;
+">
+    Total Contribution of All Friends:: ₹{{ number_format($totalContribution, 2) }}
 </div>
 
 <!-- Styled table -->

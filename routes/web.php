@@ -14,30 +14,27 @@ use App\Http\Controllers\FundController;
 |
 */
 
-Route::get('login', [FundController::class, 'login']);
+Route::get('login', [FundController::class, 'login'])->name('login');
 Route::post('login', [FundController::class, 'userlogin']);
 Route::get('/', [FundController::class, 'friendList']);
-Route::get('add-fund', [FundController::class, 'addFund']);
-Route::post('datasaved', [FundController::class, 'datasaved']);
-Route::get('add-user', [FundController::class, 'addUser']);
-Route::post('create-user', [FundController::class, 'createUser']);
 Route::get('details/{id}', [FundController::class, 'fundDetailbyId']);
 Route::get('ledger', [FundController::class, 'ledger']);
 Route::get('loan', [FundController::class, 'loanHome']);
 Route::get('loan/{id}', [FundController::class, 'loanDetails']);
-Route::get('loan/provide/{id}', [FundController::class, 'provideLoan']);
-Route::get('fd', [FundController::class, 'viewFixdeposit']);
-Route::post('postfd', [FundController::class, 'storeFixdeposit'])->name('postfd');
 
-
-
-Route::post('/provide-loan', [FundController::class, 'storeLoan'])->name('provideLoan');
-
-// Show the Add Ledger form
+// Not for use
 Route::get('add-ledger', [FundController::class, 'createLedger']);
-
-// Handle the form submission
 Route::post('add-ledger', [FundController::class, 'storeLedger']);
 
-Route::get('authuser', [FundController::class, 'authuser'])->name('authuser');
-Route::middleware('auth:sanctum')->group(function () {});
+Route::middleware('auth')->group(function () {
+    Route::get('add-user', [FundController::class, 'addUser']);
+    Route::post('create-user', [FundController::class, 'createUser']);
+
+    Route::get('add-fund', [FundController::class, 'addFund']);
+    Route::post('datasaved', [FundController::class, 'datasaved']);
+
+    Route::get('fd', [FundController::class, 'viewFixdeposit']);
+    Route::post('postfd', [FundController::class, 'storeFixdeposit'])->name('postfd');
+
+    Route::post('/provide-loan', [FundController::class, 'storeLoan'])->name('provideLoan');
+});
