@@ -38,3 +38,6 @@ Route::get('add-ledger', [FundController::class, 'createLedger']);
 
 // Handle the form submission
 Route::post('add-ledger', [FundController::class, 'storeLedger']);
+
+Route::get('authuser', [FundController::class, 'authuser'])->name('authuser');
+Route::middleware('auth:sanctum')->group(function () {});

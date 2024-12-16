@@ -21,23 +21,8 @@
     text-align: center;
     margin-bottom: 20px;
 ">
-    {{$loanDetail[0]['name']}}
+    {{$loanDetail[0]['name']??""}}
 
-</div>
-
-<!-- Total Contribution Section -->
-<div style="
-    background-color: #eaf4ea;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    font-size: 22px;
-    color: #2d572c;
-    font-family: Arial, sans-serif;
-    width: 50%;
-    text-align: center;
-    margin-bottom: 20px;
-">
 </div>
 
 <!-- Monthly Contribution Section -->

@@ -171,6 +171,7 @@
         <thead>
             <tr>
                 <th>Sl No.</th>
+                <th>Transaction by</th>
                 <th>Date</th>
                 <th>Description</th>
                 <th>Type</th>
@@ -185,6 +186,7 @@
             @endphp
             <tr class="{{ $rowClass }}">
                 <td>{{ $loop->iteration }}</td>
+                <td>{{ $transaction['name'] }}</td>
                 <td>{{ $transaction['date'] }}</td>
                 <td>{{ $transaction['description'] }}</td>
                 <td>{{ ucfirst($transaction['type']) }}</td>

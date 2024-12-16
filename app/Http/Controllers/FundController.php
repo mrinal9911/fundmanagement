@@ -9,15 +9,22 @@ use App\Models\MonthlyDeposit;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
-use Cron\MonthField;
 use Exception;
-use GuzzleHttp\RetryMiddleware;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 
 class FundController extends Controller
 {
+    public function authuser(Request $request)
+    {
+        return  $data = $request->session()->all();
+        return $user  = Auth::user();
+    }
 
     public function login()
     {
@@ -26,8 +33,41 @@ class FundController extends Controller
 
     public function userlogin(Request $request)
     {
-        return $request;
-        return view('loginpage');
+        try {
+            // Validation
+            $email = $request->email;
+            // checking user is existing or not
+            $emailInfo = User::where('email', $request->email)
+                ->first();
+            if (!$emailInfo) {
+                $msg = "Oops! Given email does not exist";
+                return $msg;
+            }
+
+            // Authentication Using Sql Database
+            if ($emailInfo) {
+                // Authenticating Password
+                if ($request->password == $emailInfo->password) {
+                    $token = $emailInfo->createToken('my-app-token')->plainTextToken;
+                    $emailInfo->remember_token = $token;
+                    $emailInfo->save();
+
+                    $key = 'last_activity_' . $emailInfo->id;               // Set last activity key 
+                    $message = "You r logged in now";           // Response Message Using Trait
+
+                    return redirect()->route('authuser')->with('success', $message);
+
+                    return response()->json($message, 200);
+                } else {
+                    $msg = "Incorrect Password";
+                    return response($msg, 200);
+                }
+            }
+        }
+        // Authentication Using Sql Database
+        catch (Exception $e) {
+            return $e->getMessage();
+        }
     }
 
     public function friendList()
@@ -42,62 +82,21 @@ class FundController extends Controller
         return view('addfund', compact('friendList'));
     }
 
-    public function addUser()
-    {
-        return view('adduser');
-    }
-
-    // public function datasaved(Request $request)
-    // {
-    //     try {
-    //         $ifExist =  MonthlyDeposit::where('user_id', $request->userId)
-    //             ->where('month', $request->month)
-    //             ->where('year', $request->year)
-    //             ->first();
-
-    //         if ($ifExist)
-    //             throw new Exception("Fund already submitted for this month");
-
-
-    //         $mMonthlyDeposit = new MonthlyDeposit();
-    //         $mMonthlyDeposit->user_id      = $request->userId;
-    //         $mMonthlyDeposit->month        = $request->month;
-    //         $mMonthlyDeposit->year         = $request->year;
-    //         $mMonthlyDeposit->amount       = $request->amt;
-    //         $mMonthlyDeposit->deposited_on = $request->deposited_on;
-    //         $mMonthlyDeposit->created_at = Carbon::now();
-
-    //         $lastTranDtl = Transaction::orderbydesc('id')->first();
-
-
-    //         $mTransaction = new Transaction();
-    //         $mTransaction->date        = $request->deposited_on;
-    //         $mTransaction->type        = "Credit";
-    //         $mTransaction->balance     = $lastTranDtl->balance + $request->amt;
-    //         $mTransaction->description = $request->description;
-    //         $mTransaction->amount      = $request->amt;
-    //         $mTransaction->created_at  = Carbon::now();
-
-    //         DB::connection()->beginTransaction();
-    //         $mMonthlyDeposit->save();
-    //         $mTransaction->save();
-
-    //         $user = User::find($request->userId);
-    //         $user->total_contribution = $user->total_contribution + $request->amt;
-
-    //         $user->save();
-    //         DB::connection()->commit();
-
-    //         return view('datasaved');
-    //     } catch (Exception $e) {
-    //         DB::connection()->rollBack();
-    //         throw new Exception($e->getMessage());
-    //     }
-    // }
-
     public function datasaved(Request $request)
     {
-        // return $request;
+        $validator = Validator::make($request->all(), [
+            'monthlyamt' => 'nullable|numeric', // Optional field
+            'month' => 'required_with:monthlyamt|integer|min:1|max:12', // Required if monthlyamt is present
+            'year' => 'required_with:monthlyamt|integer|min:1900|max:2100', // Required if monthlyamt is present
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()->first(),
+            ], 422);
+        }
+
         try {
             $ifExist =  MonthlyDeposit::where('user_id', $request->userId)
                 ->where('month', $request->month)
@@ -132,6 +131,7 @@ class FundController extends Controller
 
                 $mTransaction1 = new Transaction();
                 $mTransaction1->date        = $request->deposited_on;
+                $mTransaction1->user_id     = $request->userId;
                 $mTransaction1->type        = "Credit";
                 $mTransaction1->balance     = $lastTranDtl->balance + $request->montlhlyamt;
                 $mTransaction1->description = $request->description;
@@ -143,6 +143,7 @@ class FundController extends Controller
             if ($request->loanamt) {
                 $mTransaction2 = new Transaction();
                 $mTransaction2->date        = $request->deposited_on;
+                $mTransaction2->user_id     = $request->userId;
                 $mTransaction2->type        = "Credit";
                 $mTransaction2->balance     = $lastTranDtl->balance + $request->loanamt;
                 $mTransaction2->description = $request->description;
@@ -175,8 +176,29 @@ class FundController extends Controller
         }
     }
 
+    public function addUser()
+    {
+        return view('adduser');
+    }
+
     public function createUser(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-zA-Z0-9\s]+$/' // Allow only letters, numbers, and spaces
+            ],
+            'amt'  => 'required|integer',
+        ], [
+            'name.regex' => 'The name field may only contain letters, numbers, and spaces.', // Custom error message for regex
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
         try {
             $mUser = new User();
             $mUser->name               = $request->name;
@@ -193,7 +215,6 @@ class FundController extends Controller
 
     public function fundDetailbyId($id)
     {
-
         try {
             $monthlyDeposit = MonthlyDeposit::select('monthly_deposits.*', 'users.name', 'users.total_contribution')
                 ->where('user_id', $id)
@@ -204,13 +225,16 @@ class FundController extends Controller
             return view('funddetail', compact('monthlyDeposit'));
         } catch (Exception $e) {
             return $e;
-            DB::connection()->rollBack();
         }
     }
 
     public function ledger()
     {
-        $transactions = Transaction::orderBydesc('id')->get();
+        $transactions   = Transaction::select('transactions.id', 'date', 'type', 'balance', 'amount', 'description', 'users.name')
+            ->leftjoin('users', 'users.id', 'transactions.user_id')
+            ->orderBydesc('id')
+            ->get();
+
         $currentBalance = Transaction::select('balance')->orderByDesc('id')->first();
         return view('ledger', compact(['transactions', 'currentBalance']));
     }
@@ -249,7 +273,9 @@ class FundController extends Controller
             ->orderBy('name')
             ->get();
 
-        $outstandingLoanAmt = Loan::sum('loan_amt');
+        $totalLoanAmt = Loan::sum('loan_amt');
+        $totalPaidAmt = Loan::sum('paid_amt');
+        $outstandingLoanAmt = $totalLoanAmt - $totalPaidAmt;
         return view('loanhome', compact('loanDetails', 'currentBalance', 'outstandingLoanAmt'));
     }
 
@@ -314,6 +340,7 @@ class FundController extends Controller
             $mLoanDetail->save();
 
             $mTransaction->date        = $validated['loan_date'];
+            $mTransaction->user_id     = $validated['user_id'];
             $mTransaction->type        = "Debit";
             $mTransaction->balance     = $currentBalance->balance - $validated['loan_amt'];
             $mTransaction->description = "Loan";
@@ -355,6 +382,12 @@ class FundController extends Controller
         try {
             $mTransaction = new Transaction();
             $mTransaction->date        = $validated['date'];
+
+            /**
+             auth user ka id
+             */
+            // $mTransaction->user_id     = auth()->user()->id;
+
             $mTransaction->type        = "Debit";
             $mTransaction->balance     = $currentBalance->balance - $validated['amount'];
             $mTransaction->description = "Fixed Deposit to account " . $request->accountNo . ".";
