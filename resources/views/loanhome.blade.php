@@ -73,7 +73,8 @@
 
         /* Button styling */
         .action-btn {
-            background-color: #4CAF50;
+
+            background-color: #f39c12;
             color: white;
             border: none;
             padding: 8px 16px;
@@ -96,7 +97,7 @@
         }
 
         .provide-btn {
-            background-color: #f39c12;
+            background-color: #4CAF50;
         }
 
         .provide-btn:hover {
@@ -171,8 +172,11 @@
                 <td>
                     <!-- Action buttons for each row -->
                     <a href="/loan/{{ $loanDetail['id'] }}" class="action-btn">View Loan Details</a>
-                    <!-- <a href="/loan/repay/{{ $loanDetail['id'] }}" class="action-btn repay-btn">Loan Repayment</a> -->
+
+                    <!-- Show "Provide Loan" button only for logged-in users -->
+                    @auth
                     <button class="action-btn provide-btn" onclick="openModal({{ $loanDetail['id'] }})">Provide Loan</button>
+                    @endauth
                 </td>
             </tr>
             @endforeach

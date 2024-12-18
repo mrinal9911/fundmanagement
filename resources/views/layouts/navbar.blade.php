@@ -1,7 +1,8 @@
 <nav>
     <div style="display: flex; align-items: center;">
         <!-- Logo Image -->
-        <img src="{{ asset('keymonlogo.jpg') }}" alt="Logo" style="height: 50px; width: auto; margin-right: 10px;">
+        <img src="{{ asset('keymonlogo.png') }}" alt="Logo" style="height: 50px; width: auto; margin-right: 10px;">
+        <!-- <img src="{{ asset('image.png') }}" alt="Logo" style="height: 50px; width: auto; margin-right: 10px;"> -->
         <h1>Keymon Gullak</h1>
     </div>
     <div class="nav-links">
