@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FixDeposit;
 use App\Models\Loan;
 use App\Models\LoanDetail;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\ViewErrorBag;
 use Illuminate\Validation\Rule;
 
 
@@ -323,7 +325,9 @@ class FundController extends Controller
     public function viewFixdeposit()
     {
         $currentBalance = Transaction::select('balance')->orderByDesc('id')->first();
-        return view('fixdeposit', compact('currentBalance'));
+        $fdList = FixDeposit::orderBy('date')->get();
+
+        return view('fixdeposit', compact('currentBalance', 'fdList'));
     }
 
     public function  storeFixdeposit(Request $request)
@@ -343,18 +347,55 @@ class FundController extends Controller
             return back()->withErrors(['amount' => 'The loan amount must be less than or equal to the balance left.']);
         }
         try {
+            $mFixDeposit  =  new FixDeposit();
             $mTransaction = new Transaction();
+
+
+            $mFixDeposit->date       =  $validated['date'];
+            $mFixDeposit->account_no =  $request->accountNo;
+            $mFixDeposit->amount     =  $validated['amount'];
+
             $mTransaction->date        = $validated['date'];
             $mTransaction->user_id     = auth()->user()->id;
             $mTransaction->type        = "Debit";
             $mTransaction->balance     = $currentBalance->balance - $validated['amount'];
             $mTransaction->description = "Fixed Deposit to account " . $request->accountNo . ".";
             $mTransaction->amount      = $validated['amount'];
-            $mTransaction->created_at  = Carbon::now();
+
+            DB::beginTransaction();
+            $mFixDeposit->save();
             $mTransaction->save();
+            DB::commit();
 
             return redirect()->back()->with('success', 'Fixed Deposit Saved Successfully!');
         } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('failed', $e->getMessage());
+        }
+    }
+
+    public function releasefd($id)
+    {
+        try {
+            $mTransaction = new Transaction();
+            $toBeReleasedData = FixDeposit::find($id);
+            $currentBalance   = Transaction::select('balance')->orderByDesc('id')->first();
+
+            $mTransaction->date        = Carbon::now();
+            $mTransaction->user_id     = auth()->user()->id;
+            $mTransaction->type        = "Credit";
+            $mTransaction->balance     = $currentBalance->balance + $toBeReleasedData->amount;
+            $mTransaction->description = "Fixed deposit released from account " . $toBeReleasedData->account_no;
+            $mTransaction->amount      = $toBeReleasedData->amount;
+
+            dB::beginTransaction();
+            $mTransaction->save();
+            $releasedData     = FixDeposit::where('id', $id)->update(['is_released' => true]);
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Data Updated Successfully!');
+        } catch (Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('failed', $e->getMessage());
         }
     }
@@ -363,5 +404,15 @@ class FundController extends Controller
     {
         Auth::logout(); // logging out user
         return Redirect::to('login'); // redirection to login screen
+    }
+
+    function  test()
+    {
+        $currentBalance = Transaction::select('balance')->orderByDesc('id')->first();
+        $fdList = [
+            ['id' => '1', 'date' => '2024-01-01', 'accountNo' => '123456789', 'amount' => 5000],
+            ['id' => '2', 'date' => '2024-02-15', 'accountNo' => '987654321', 'amount' => 10000],
+        ];
+        return view('test', compact('currentBalance', 'fdList'));
     }
 }

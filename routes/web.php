@@ -25,6 +25,8 @@ Route::get('loan/{id}', [FundController::class, 'loanDetails']);
 // Not for use
 Route::get('add-ledger', [FundController::class, 'createLedger']);
 Route::post('add-ledger', [FundController::class, 'storeLedger']);
+Route::get('test', [FundController::class, 'test']);
+
 
 Route::middleware('auth')->group(function () {
     Route::get('add-user', [FundController::class, 'addUser']);
@@ -35,6 +37,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('fd', [FundController::class, 'viewFixdeposit']);
     Route::post('postfd', [FundController::class, 'storeFixdeposit'])->name('postfd');
+    Route::post('releasefd/{id}', [FundController::class, 'releasefd']);
 
     Route::post('/provide-loan', [FundController::class, 'storeLoan'])->name('provideLoan');
 

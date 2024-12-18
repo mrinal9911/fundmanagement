@@ -26,7 +26,7 @@ $totalContribution = $friendList->sum('total_contribution');
     text-align: center;
     margin-bottom: 20px;
 ">
-    Total Contribution of All Friends:: ₹{{ number_format($totalContribution, 2) }}
+    Total Contribution of All Friends: ₹{{ number_format($totalContribution, 2) }}
 </div>
 
 <!-- Styled table -->
