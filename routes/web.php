@@ -37,4 +37,6 @@ Route::middleware('auth')->group(function () {
     Route::post('postfd', [FundController::class, 'storeFixdeposit'])->name('postfd');
 
     Route::post('/provide-loan', [FundController::class, 'storeLoan'])->name('provideLoan');
+
+    Route::post('logout', [FundController::class, 'logout']);
 });
