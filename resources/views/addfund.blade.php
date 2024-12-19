@@ -173,10 +173,10 @@
 
         <div class="mb-3">
             <label class="form-label">Deposited On</label>
-            <input type="date" name="deposited_on" value="{{ old('deposited_on') }}" class="form-control">
+            <input type="date" name="deposited_on" value="{{ old('deposited_on') }}" class="form-control" max="{{ date('Y-m-d') }}">
         </div>
 
-        <div class="mb-3">
+        <div class=" mb-3">
             <button type="submit" class="btn btn-primary">Save</button>
         </div>
     </form>

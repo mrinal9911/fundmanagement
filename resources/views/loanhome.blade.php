@@ -192,9 +192,9 @@
                 <input type="hidden" name="user_id" id="loan_id">
                 <input type="number" name="loan_amt" id="loan_amt" placeholder="Enter amount" required>
                 <br><br>
-                <input type="date" name="loan_date" placeholder="Enter Deposit Date" required>
+                <input type="date" name="loan_date" placeholder="Enter Deposit Date" required max="{{ date('Y-m-d') }}">
                 <br><br>
-                <button type="submit" class="action-btn">Submit</button>
+                <button type=" submit" class="action-btn">Submit</button>
                 <button type="button" class="close-btn" onclick="closeModal()">Close</button>
             </form>
         </div>
