@@ -150,7 +150,7 @@
 </style>
 
 <div class="btn-container">
-    <h2>Balance Left: ₹{{ number_format($currentBalance['balance'], 2) }}</h2>
+    <h2>Balance Left: ₹{{ number_format($currentBalance['balance']??0, 2) }}</h2>
 </div>
 
 <div class="container">
