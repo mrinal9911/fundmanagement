@@ -54,10 +54,15 @@ class FundController extends Controller
 
     public function datasaved(Request $request)
     {
+        $request->merge([
+            'month' => (int) $request->input('month'),
+            'year' => (int) $request->input('year'),
+        ]);
+
         $validator = Validator::make($request->all(), [
             'monthlyamt' => 'nullable|numeric', // Optional field
-            // 'month' => 'required_with:monthlyamt|integer|min:1|max:12', // Required if monthlyamt is present
-            // 'year' => 'required_with:monthlyamt|integer|min:1900|max:2100', // Required if monthlyamt is present
+            // 'month' => 'nullable|integer|min:1|max:12',
+            // 'year' => 'nullable|integer|min:1900|max:2100',
         ]);
 
         if ($validator->fails()) {
@@ -84,12 +89,11 @@ class FundController extends Controller
             if ($overdueLoanAmt < $request->loanamt)
                 throw new Exception("Deposited loan amount should be less than overdue loan.");
 
-
-            $lastTranDtl = Transaction::orderbydesc('id')->first();
             DB::connection()->beginTransaction();
-
             #_Monthly Amount
             if ($request->montlhlyamt) {
+                $lastTranDtl = Transaction::orderbydesc('id')->first();
+                DB::connection()->beginTransaction();
                 $mMonthlyDeposit = new MonthlyDeposit();
                 $mMonthlyDeposit->user_id      = $request->userId;
                 $mMonthlyDeposit->month        = $request->month;
@@ -108,9 +112,13 @@ class FundController extends Controller
                 $mTransaction1->amount      = $request->montlhlyamt;
                 $mTransaction1->created_at  = Carbon::now();
                 $mTransaction1->save();
+                DB::connection()->commit();
             }
 
+
             if ($request->loanamt) {
+                $lastTranDtl = Transaction::orderbydesc('id')->first();
+                DB::connection()->beginTransaction();
                 $mTransaction2 = new Transaction();
                 $mTransaction2->date        = $request->deposited_on;
                 $mTransaction2->user_id     = $request->userId;
@@ -127,6 +135,7 @@ class FundController extends Controller
                 $mLoanDetail->amount    = $request->loanamt;
                 $mLoanDetail->date      = $request->deposited_on;
                 $mLoanDetail->save();
+                DB::connection()->commit();
             }
 
             $loanUser = Loan::where('user_id', $request->userId)->first();
@@ -135,10 +144,9 @@ class FundController extends Controller
 
             $user = User::find($request->userId);
             $user->total_contribution = $user->total_contribution + $request->montlhlyamt;
-
             $user->save();
-            DB::connection()->commit();
 
+            DB::connection()->commit();
             return view('datasaved');
         } catch (Exception $e) {
             DB::connection()->rollBack();
