@@ -37,7 +37,7 @@
     text-align: center;
     margin-bottom: 20px;
 ">
-    Total Contribution: ₹{{ number_format($monthlyDeposit[0]['total_contribution']) }} <!-- Sums up the amounts -->
+    Total Contribution: ₹{{ number_format($monthlyDeposit[0]['total_contribution']??0) }} <!-- Sums up the amounts -->
 </div>
 
 <!-- Monthly Contribution Section -->
