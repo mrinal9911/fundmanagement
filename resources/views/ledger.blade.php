@@ -163,7 +163,7 @@
 
     <!-- Balance and Add Ledger Button -->
     <div class="btn-container">
-        <h2>Balance Left: ₹{{ number_format($currentBalance['balance'], 2) }}</h2>
+        <h2>Balance Left: ₹{{ number_format($currentBalance['balance'] ?? 0, 2) }}</h2>
         <!-- <a href="{{ url('add-ledger') }}" class="btn">Add Ledger</a> -->
     </div>
 

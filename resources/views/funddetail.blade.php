@@ -21,7 +21,7 @@
     text-align: center;
     margin-bottom: 20px;
 ">
-    {{$monthlyDeposit[0]['name']}}
+    {{$monthlyDeposit[0]['name']??"User"}}
 </div>
 
 <!-- Total Contribution Section -->

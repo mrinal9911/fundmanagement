@@ -144,9 +144,9 @@
 
 
     <!-- Page title and balance information -->
-    <div class="btn-container" data-balance="{{ $currentBalance['balance'] }}">
-        <h2>Balance Left: ₹{{ number_format($currentBalance['balance'], 2) }}</h2>
-        <h2>Outstanding Loan Amount: ₹{{ number_format($outstandingLoanAmt, 2) }}</h2>
+    <div class="btn-container" data-balance="{{ $currentBalance['balance'] ?? 0 }}">
+        <h2>Balance Left: ₹{{ number_format($currentBalance['balance'] ?? 0, 2) }}</h2>
+        <h2>Outstanding Loan Amount: ₹{{ number_format($outstandingLoanAmt ?? 0, 2) }}</h2>
     </div>
 
     <!-- Loan Details Table -->
