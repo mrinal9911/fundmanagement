@@ -56,8 +56,8 @@ class FundController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'monthlyamt' => 'nullable|numeric', // Optional field
-            'month' => 'required_with:monthlyamt|integer|min:1|max:12', // Required if monthlyamt is present
-            'year' => 'required_with:monthlyamt|integer|min:1900|max:2100', // Required if monthlyamt is present
+            // 'month' => 'required_with:monthlyamt|integer|min:1|max:12', // Required if monthlyamt is present
+            // 'year' => 'required_with:monthlyamt|integer|min:1900|max:2100', // Required if monthlyamt is present
         ]);
 
         if ($validator->fails()) {
