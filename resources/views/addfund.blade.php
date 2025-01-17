@@ -189,7 +189,7 @@
     document.getElementById('month').addEventListener('change', function() {
         const amountField = document.getElementById('amount');
         if (this.value) {
-            amountField.value = '1600';
+            amountField.value = '2100';
         } else {
             amountField.value = ''; // Clear the amount if no month is selected
         }
